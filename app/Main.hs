@@ -2,13 +2,21 @@
 --https://habrahabr.ru/post/249803/
 --Программы коллег на git'е
 
+--EasyGit:
+--git add <каталог или файл, который хотел бы добавить>
+--git commit -m "<комментарий к тому что добавил>"
+--git push
+--
+--git branch <имя создаваемой ветки>
+--git branch -v ;список созданных веток
+--git checkout <имя ветки, к которой переходим>
+
 --Actions:
 --sudo apt-get update
 --sido apt-get install ghci
 --sudo apt-get install stack
 --sudo apt-get install git
 --действия с git'a
---miner
 
 module Main where
 
