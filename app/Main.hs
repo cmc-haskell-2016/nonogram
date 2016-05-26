@@ -8,7 +8,7 @@
 --sudo apt-get install stack
 --sudo apt-get install git
 --действия с git'a
-
+--miner
 
 module Main where
 
