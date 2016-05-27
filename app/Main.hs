@@ -36,7 +36,6 @@ module Main where
 import Lib
 import Data.Map
 import Data.Set
-import System.Random.Shuffle (shuffle')
 
 --Минное поле 4+5--
 data CellState = Opened Int
@@ -66,23 +65,11 @@ createField :: Field
 createField = Data.Map.empty
 --Минное поле 6--
 
---Минное поле 10+11+12--
-shuffle g l = shuffle' l (fieldWidth * fieldHeight - 1) g
---Минное поле 10+11+12--
 
---Минное поле 8+9--
-createMines :: RandomGen g => g -> Cell -> Mines
-createMines g fst = Data.Set.fromList $ take mineCount $ shuffle g $
-                    [(i, j) | i <- [0 .. fieldWidth - 1]
-                            , j <= [0 .. fieldHeight - 1]
-                            , (i, j) /= fst]
---Минное поле 8+9--
 
 --Минное поле 1--
 main :: IO ()
 main = do
---       s <- getLine
---      putStrLn (someFunc s)
     let field = createField
     startGame field 
 --Минное поле 1--
