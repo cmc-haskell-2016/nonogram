@@ -17,7 +17,7 @@
 
 --Actions:
 --sudo apt-get update
---sido apt-get install ghci
+--sudo apt-get install ghc
 --sudo apt-get install stack
 --sudo apt-get install git
 --sudo apt-get install cabal-install
@@ -37,14 +37,22 @@ import Lib
 import Data.Map
 import Graphics.Gloss.Interface.Pure.Game
 
-fieldSize@(fieldWidth, fieldHeight) = (15, 15) :: (Int, Int) --создали константу размера поля как кортеж из ширины и высоты поля
+--создали константу размера поля как кортеж из ширины и высоты поля
+fieldSize@(fieldWidth, fieldHeight) = (15, 15) :: (Int, Int)
+--размер клетки поля
 cellSize = 24
 
+--состояния клетки поля
+                 --не заполнено
 data CellState = Empty
+                 --закрашено
                | X
+                 --не закрашено
                | O
 
+--поле есть соответствие между ячейками и их состоянием
 type Field = Map Cell CellState
+--ячейка есть пара целых чисел
 type Cell = (Int, Int)
 
 
@@ -53,7 +61,7 @@ createField = Data.Map.empty
 
 startGame :: Field -> IO ()
 startGame field = play (InWindow "Nonogram.pro" (240, 160) (10, 10)) 
-                       yellow 
+                       (greyN 0.25) 
                        30 
                        field 
                        renderer 
@@ -64,8 +72,17 @@ updater _ = id
 
 handler _ = id
 
-renderer _ = pictures [uncurry translate (cellToScreen (x, y)) $ color white $ rectangleSolid cellSize cellSize
-                      | x <- [0 .. fieldWidth - 1], y <- [0 .. fieldHeight - 1]]
+renderer _ = pictures [uncurry 
+                       translate 
+                       (cellToScreen (x, y))
+                     $ color 
+                       white 
+                     $ rectangleSolid 
+                       cellSize 
+                       cellSize
+                      | x <- [0 .. fieldWidth - 1], 
+                        y <- [0 .. fieldHeight - 1]
+                      ]
 
 cellToScreen = both ((* cellSize) . fromIntegral)
 
