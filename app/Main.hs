@@ -35,41 +35,41 @@ module Main where
 
 import Lib
 import Data.Map
-import Data.Set
+import Graphics.Gloss.Interface.Pure.Game
 
---Минное поле 4+5--
-data CellState = Opened Int
-               | Mine
-               | Flag
---Минное поле 4+5--
+fieldSize@(fieldWidth, fieldHeight) = (15, 15) :: (Int, Int) --создали константу размера поля как кортеж из ширины и высоты поля
+cellSize = 24
 
---Минное поле 3--
+data CellState = Empty
+               | X
+               | O
+
 type Field = Map Cell CellState
 type Cell = (Int, Int)
---Минное поле 3--
 
---Минное поле 7--
-type Mines = Set Cell
---Минное поле 7--
 
---Минное поле 2--
-fieldSize@(fieldWidth, fieldHeight) = (15, 15) :: (Int, Int)
-mineCount = 40 :: Int
-
-startGame :: Field -> IO ()
-startGame = undefined
---Минное поле 2--
-
---Минное поле 6--
 createField :: Field
 createField = Data.Map.empty
---Минное поле 6--
 
+startGame :: Field -> IO ()
+startGame field = play (InWindow "Nonogram.pro" (240, 160) (10, 10)) 
+                       yellow 
+                       30 
+                       field 
+                       renderer 
+                       handler 
+                       updater
 
+updater _ = id
 
---Минное поле 1--
+handler _ = id
+
+renderer _ = pictures [uncurry translate (cellToScreen (x, y)) $ color white $ rectangleSolid cellSize cellSize
+                      | x <- [0 .. fieldWidth - 1], y <- [0 .. fieldHeight - 1]]
+
+cellToScreen = both ((* cellSize) . fromIntegral)
+
 main :: IO ()
 main = do
-    let field = createField
-    startGame field 
---Минное поле 1--
+    let field = createField --создаем поле
+    startGame field         --запускаем игру на созданном поле
