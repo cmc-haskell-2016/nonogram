@@ -38,7 +38,7 @@ import Data.Map
 import Graphics.Gloss.Interface.Pure.Game
 
 --создали константу размера поля как кортеж из ширины и высоты поля
-fieldSize@(fieldWidth, fieldHeight) = (15, 15) :: (Int, Int)
+fieldSize@(fieldWidth, fieldHeight) = (10, 10) :: (Int, Int)
 --размер клетки поля
 cellSize = 24
 
@@ -50,6 +50,11 @@ data CellState = Empty
                  --не закрашено
                | O
 
+data GameState = GS 
+     { field :: Field
+     , plot :: Field
+     }
+
 --поле есть соответствие между ячейками и их состоянием
 type Field = Map Cell CellState
 --ячейка есть пара целых чисел
@@ -60,31 +65,44 @@ createField :: Field
 createField = Data.Map.empty
 
 startGame :: Field -> IO ()
-startGame field = play (InWindow "Nonogram.pro" (240, 160) (10, 10)) 
-                       (greyN 0.25) 
-                       30 
-                       field 
-                       renderer 
-                       handler 
-                       updater
+startGame f = play (InWindow 
+                    "Nonogram.pro" 
+                    (both (* (round cellSize)) fieldSize)
+                    (240, 160)) 
+                   (greyN 0.25) 
+                   30 
+                   f 
+                   renderer 
+                   handler 
+                   updater
 
 updater _ = id
 
-handler _ = id
+handler :: Event -> Field -> Field
+handler (EventKey (MouseButton LeftButton) Down _ (x, y)) 
+        f@Field { = f
+        _ f = f
+        
+  
 
-renderer _ = pictures [uncurry 
-                       translate 
-                       (cellToScreen (x, y))
-                     $ color 
-                       white 
-                     $ rectangleSolid 
-                       cellSize 
+renderer :: Field -> Picture
+renderer _ = pictures [uncurry
+                       translate
+                       (cellsSize (x, y))
+                     $ color
+                       white
+                     $ rectangleSolid
                        cellSize
-                      | x <- [0 .. fieldWidth - 1], 
-                        y <- [0 .. fieldHeight - 1]
-                      ]
+                       cellSize
+                     | x <- [0 .. fieldWidth - 1],
+                       y <- [0 .. fieldHeight - 1]]
+                      
 
-cellToScreen = both ((* cellSize) . fromIntegral)
+both :: (a -> b) -> (a, a) -> (b, b)
+both f (a, b) = (f a, f b)
+
+
+cellsSize = both ((* cellSize) . fromIntegral) 
 
 main :: IO ()
 main = do
