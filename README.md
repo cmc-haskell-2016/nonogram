@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/cmc-haskell-2016/nonogram.svg?branch=master)](https://travis-ci.org/cmc-haskell-2016/nonogram)
 
+## Подготовка к установке
+
+Для работы приложения, возможно, понадобится установка слудеющих утилит:
+
 ## Установка и запуск
 
 Для установки клонируйте репозиторий и соберите проект с помощью `stack`:
