@@ -18,12 +18,6 @@ sudo apt-get update
 sudo apt-get install ghc
 ```
 
-`stack`:
-
-### Инструкция по установке:
-
-http://docs.haskellstack.org/en/stable/install_and_upgrade/#ubuntu
-
 `git`:
 
 ```
@@ -44,6 +38,10 @@ cabal update
 cabal install gloss-examples
 cabal install containers
 ```
+
+Инструкция по установке `stack`:
+
+http://docs.haskellstack.org/en/stable/install_and_upgrade/#ubuntu
 
 ## Установка и запуск
 

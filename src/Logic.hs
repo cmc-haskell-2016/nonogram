@@ -11,12 +11,12 @@ data Cell
 
 type Field = [[Cell]]
 
-type Question = [[Int]]
+type Task = [[Int]]
 
 data Nonogram = Nonogram
   { field :: Field	-- ^ ...
-  , cols  :: Question
-  , rows  :: Question
+  , cols  :: Task
+  , rows  :: Task
   }
 
 type Coord = (Int, Int)
@@ -37,14 +37,13 @@ updateElem n f xs = ys ++ [f z] ++ zs
   where
     (ys, z:zs) = splitAt n xs
 
-
 makeNonogram :: Field -> Nonogram
 makeNonogram field = Nonogram field (qCols field) (qRows field)
 
-qRows :: Field -> Question
+qRows :: Field -> Task
 qRows = map qLine 
 
-qCols :: Field -> Question
+qCols :: Field -> Task
 qCols = map qLine . transpose
 
 qLine :: [Cell] -> [Int]
@@ -60,7 +59,7 @@ readField = map (map readCell) . lines
 readCell :: Char -> Cell
 readCell '.'  = U
 readCell 'O'  = D
-readCell _    = error "invalid nongram file"
+readCell _    = error "Invalid nonogram file"
 
 -- | Загрузить головоломку из файла.
 importNonogram :: FilePath -> IO Nonogram
