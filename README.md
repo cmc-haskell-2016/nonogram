@@ -20,14 +20,14 @@ sudo apt-get install ghc
 
 `stack`:
 
-# Инструкция по установке:
+### Инструкция по установке:
 
 http://docs.haskellstack.org/en/stable/install_and_upgrade/#ubuntu
 
 `git`:
 
 ```
---sudo apt-get install git
+sudo apt-get install git
 ```
 
 `LLVM`:
