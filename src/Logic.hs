@@ -4,8 +4,8 @@ import Data.List
 
 -- | Ячейка поля.
 data Cell
-  = E	-- ^ Пустая ячейка.
-  | D	-- ^ ...
+  = E   -- ^ Пустая ячейка.
+  | D   -- ^ ...
   | U
   deriving (Eq)
 
@@ -14,31 +14,19 @@ type Field = [[Cell]]
 type Task = [[Int]]
 
 data Nonogram = Nonogram
-  { field :: Field	-- ^ ...
+  { solve :: Field
+  , field :: Field      -- ^ ...
   , cols  :: Task
   , rows  :: Task
   }
 
 type Coord = (Int, Int)
 
-changeD :: Cell -> Cell
-changeD D = E
-changeD _ = D
-
-changeU :: Cell -> Cell
-changeU U = E
-changeU _ = U
-
-updateCell :: Coord -> (Cell -> Cell) -> Field -> Field
-updateCell (i, j) f field = updateElem i (updateElem j f) field
-
-updateElem :: Int -> (a -> a) -> [a] -> [a]
-updateElem n f xs = ys ++ [f z] ++ zs
-  where
-    (ys, z:zs) = splitAt n xs
-
 makeNonogram :: Field -> Nonogram
-makeNonogram field = Nonogram field (qCols field) (qRows field)
+makeNonogram pic = Nonogram (emptySolve pic) pic (qCols pic) (qRows pic)
+
+emptySolve :: Field -> Field
+emptySolve pic = take (length pic) (repeat (take (length (head pic)) (repeat E)))
 
 qRows :: Field -> Task
 qRows = map qLine 
