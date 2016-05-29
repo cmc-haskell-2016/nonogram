@@ -1,6 +1,7 @@
 module Interface where
 
 import Logic
+import Solver
 import Data.List
 import Graphics.Gloss.Interface.Pure.Game
 
@@ -151,6 +152,20 @@ handleNonogram (EventKey (MouseButton button) Down _ (x, y))
     bot = top - cellSize * (length leftSide)
     i = floor (((fromIntegral top) - y) / (fromIntegral cellSize))
     j = floor ((x - (fromIntegral left)) / (fromIntegral cellSize))
+handleNonogram (EventKey (Char key) Down _ _)
+               Nonogram { solve = board 
+                        , field = pic
+                        , cols  = upSide
+                        , rows  = leftSide
+                        }
+  | key == 's' 
+    = guessNonogram Nonogram { solve = board
+                             , field  = pic
+                             , cols = upSide
+                             , rows = leftSide
+                             }
+  | otherwise
+    = Nonogram { solve = board, field  = pic, cols = upSide, rows = leftSide}
 handleNonogram _ a = a
 
 
