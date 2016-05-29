@@ -158,12 +158,18 @@ handleNonogram (EventKey (Char key) Down _ _)
                         , cols  = upSide
                         , rows  = leftSide
                         }
-  | key == 's' 
+  | key == 'g' 
     = guessNonogram Nonogram { solve = board
                              , field  = pic
                              , cols = upSide
                              , rows = leftSide
                              }
+  | key == 'c' 
+    = crossesNonogram Nonogram { solve = board
+                               , field  = pic
+                               , cols = upSide
+                               , rows = leftSide
+                               }
   | otherwise
     = Nonogram { solve = board, field  = pic, cols = upSide, rows = leftSide}
 handleNonogram _ a = a
