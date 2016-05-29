@@ -2,6 +2,7 @@ module Main where
 
 import Logic
 import Interface
+import Solver
 import Graphics.Gloss.Interface.Pure.Game
 
 main :: IO ()
