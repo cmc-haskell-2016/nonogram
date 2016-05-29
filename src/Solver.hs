@@ -36,25 +36,13 @@ guessBlocks row task
     (c:d)   = y
     (p, q)  = splitAt (head task) row
 
-orField :: Field -> Field -> Field
-orField a b = map orRow (zip a b)
-
-orRow :: ([Cell], [Cell]) -> [Cell]
-orRow (a, b) = map orCell (zip a b)
-
-orCell :: (Cell, Cell) -> Cell
-orCell (_, D) = D
-orCell (D, _) = D
-orCell (E, U) = U
-orCell (U, E) = U
-orCell (_, _) = E
-
 crossesNonogram :: Nonogram -> Nonogram
 crossesNonogram Nonogram { solve = board
                          , field = pic
                          , cols  = top
                          , rows  = left
-                         } = Nonogram { solve = putCrosses left board
+                         } = Nonogram { solve = orField (putCrosses left board) 
+                                                        (transpose (putCrosses top (transpose board)))
                                       , field = pic
                                       , cols = top
                                       , rows = left
@@ -71,8 +59,17 @@ putCrossesLine a b
   | otherwise
     = b
 
-{-qLine :: [Cell] -> [Int]
-qLine = map length . filter (any isD) . group
+orField :: Field -> Field -> Field
+orField a b = map orRow (zip a b)
 
-isD :: Cell -> Bool
-isD D = True-}
+orRow :: ([Cell], [Cell]) -> [Cell]
+orRow (a, b) = map orCell (zip a b)
+
+orCell :: (Cell, Cell) -> Cell
+orCell (E, a) = a
+orCell (a, E) = a
+orCell (a, b) 
+  | a == b
+    = a
+  | otherwise
+    = error "implementation error"
