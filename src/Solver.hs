@@ -61,7 +61,8 @@ crossesNonogram Nonogram { solve = board
                                       }
 
 putCrosses :: Task -> Field -> Field
-putCrosses a b = (putCrossesLine (head a) (head b)) : (putCrosses (tail a) (tail b))
+putCrosses [] b = b
+putCrosses a b  = (putCrossesLine (head a) (head b)) : (putCrosses (tail a) (tail b))
 
 putCrossesLine :: [Int] -> [Cell] -> [Cell]
 putCrossesLine a b 
