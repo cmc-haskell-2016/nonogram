@@ -14,7 +14,7 @@ drawNonogram Nonogram { solve = board
                       , cols  = top
                       , rows  = left
                       } 
-  -- Рисуем подсказки и поле, совмещая 3 картинки.
+  -- | Рисуем подсказки и поле, совмещая 3 картинки.
   = pictures [ drawGrid startPoint cellSize cellSize (makeTopGrid top) 
              , drawGrid startPoint cellSize cellSize (makeBotGrid left)
              , drawBoardGrid startPoint cellSize cellSize (makeGrid board)
@@ -34,14 +34,12 @@ makeGrid board = zip (foldr (++) [] (transpose board)) [
                                                       ,
                                                       y <- reverse [negate (length board) .. -1]
                                                       ]
-
 -- | Нарисовать поле.
 drawBoardGrid :: Coord -> Int -> Int -> [(Cell, Coord)] -> Picture
 drawBoardGrid (i, j) width height = translate (fromIntegral i) (fromIntegral j) 
                                   . scale (fromIntegral width) (fromIntegral height) 
                                   . pictures 
                                   . map drawBoardCell
-
 -- | Нарисовать ячейки поля.
 drawBoardCell :: (Cell, Coord) -> Picture
 drawBoardCell (n, (i, j))
@@ -70,21 +68,19 @@ drawBoardCell (n, (i, j))
     x = fromIntegral i;
     y = fromIntegral j
 
-
--- | Формируем список из пар (значение ячейки, координаты ячейки) для левой подсказки.
 makeBotGrid :: Task -> [(Int, Coord)]
 makeBotGrid side = zip (foldr (++) [] side) (makeBotAccordance numXY)
   where
     numX  = [[(negate x) .. (negate 1)] | x <- map length side]
     numXY = zip numX (reverse [(negate (length numX)) .. (negate 1)])
 
--- | [ (X, [0..Y]) ] .
--- | Список координат ячеек левой подсказки.
 makeBotAccordance :: [([Int], Int)] -> [Coord]
 makeBotAccordance = foldr (++) [] . map (\x -> zip (fst x) (repeat (snd x)))
 
 
--- | Формируем список из пар (значение ячейки, координаты ячейки) для верхней подсказки.
+-- | Принимаем список из подсказок и возвращаем координаты ячеек.
+-- | Склеиваем все подсписки и для каждого определяем его высоту.
+-- | [[]] -> Номер подсказки и её координта.
 makeTopGrid :: Task -> [(Int, Coord)]
 makeTopGrid side = zip (foldr (++) [] side) (makeTopAccordance numXY)
   where
@@ -105,7 +101,7 @@ drawGrid (i, j) width height = translate (fromIntegral i) (fromIntegral j)
                              . pictures 
                              . map drawCell
 
--- | Рисует ячейку по заданным координатам и значению.
+-- | Рисует ячейку подсказки по заданным координатам и значению.
 drawCell :: (Int, Coord) -> Picture
 drawCell (n, (i, j))
   | (n == 0)  = pictures [
@@ -132,7 +128,8 @@ drawCell (n, (i, j))
     size = 1;
     x = fromIntegral i;
     y = fromIntegral j
-    
+----------------------------------------------------------------
+
 
 -- | Реакция на мышь и клавиатуру.
 handleNonogram :: Event -> Nonogram -> Nonogram

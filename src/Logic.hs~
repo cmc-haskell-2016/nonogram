@@ -8,7 +8,6 @@ data Cell
   | D   -- ^ Закрашенная ячейка.
   | U   -- ^ Крестик.
   | Conflict  -- ^ Неверная отметка.
-  | TD
   deriving (Eq) 
 
 type Field = [[Cell]]
@@ -17,19 +16,19 @@ type Task = [[Int]]
 
 data Nonogram = Nonogram
   { solve :: Field      -- ^ Текущее поле.
-  , field :: Field      -- ^ Картинка.
+  , field :: Field      -- ^ Исходная картинка.
   , cols  :: Task
   , rows  :: Task
   }
 
-type Coord = (Int, Int) -- ^ Координата ячейки.
+type Coord = (Int, Int) -- ^ Координаты ячейки.
 
--- | Начало игры.
+-- | Создание nonogram по полю для начала игры.
 makeNonogram :: Field -> Nonogram
 makeNonogram pic = Nonogram (emptySolve pic) pic (qCols pic) (qRows pic)
 
 
--- | Создаём пустое поле из E.
+-- | Создаём пустое поле.
 emptySolve :: Field -> Field
 emptySolve pic = take (length pic) (repeat (take (length (head pic)) (repeat E)))
 
@@ -41,41 +40,39 @@ qRows = map qLine
 qCols :: Field -> Task
 qCols = map qLine . transpose
 
--- | Считаем кол-во заполненных ячеек для подсказки.
+-- | Формируем подсказку по линии (столбцу или строке).
 qLine :: [Cell] -> [Int]
 qLine = map length . filter (any isD) . group
 
 
--- | Идентификаторы.
--- | Проверка, является ли ячейка D.
+-- | Проверка, закрашена ли ячейка.
 isD :: Cell -> Bool
 isD D = True
 isD _ = False
 
--- | Проверка, является ли ячейка U.
+-- | Проверка, помечена ли ячейка крестиком.
 isU :: Cell -> Bool
 isU U = True
 isU _ = False
 
--- | Проверка, является ли ячейка E.
+-- | Проверка, пуста ли ячейка.
 isE :: Cell -> Bool
 isE E = True
 isE _ = False
 
 
--- | Модификаторы.
--- | Если значение отлично от D, то записать в ячейку D, иначе - очистить клетку (Е).
+-- | Если ячейка закрашена, очистить её, иначе - закрасить.
 changeD :: Cell -> Cell
 changeD D = E
 changeD _ = D
 
--- | Если значение отлично от U, то записать в ячейку U, иначе - очистить клетку (Е).
+-- | Если ячейка помечена кретиком, очистить её, иначе - пометить.
 changeU :: Cell -> Cell
 changeU U = E
 changeU _ = U
 
 
--- | Изменить значение в (i, j)-ячейке.  
+-- | Изменить значение в ячейке с координатами (i, j).  
 updateCell :: Coord -> (Cell -> Cell) -> Field -> Field
 updateCell (i, j) f board = updateElem i (updateElem j f) board
 

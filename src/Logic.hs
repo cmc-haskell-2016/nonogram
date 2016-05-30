@@ -16,19 +16,19 @@ type Task = [[Int]]
 
 data Nonogram = Nonogram
   { solve :: Field      -- ^ Текущее поле.
-  , field :: Field      -- ^ Картинка.
+  , field :: Field      -- ^ Исходная картинка.
   , cols  :: Task
   , rows  :: Task
   }
 
-type Coord = (Int, Int) -- ^ Координата ячейки.
+type Coord = (Int, Int) -- ^ Координаты ячейки.
 
--- | Начало игры.
+-- | Создание nonogram по полю для начала игры.
 makeNonogram :: Field -> Nonogram
 makeNonogram pic = Nonogram (emptySolve pic) pic (qCols pic) (qRows pic)
 
 
--- | Создаём пустое поле из E.
+-- | Создаём пустое поле.
 emptySolve :: Field -> Field
 emptySolve pic = take (length pic) (repeat (take (length (head pic)) (repeat E)))
 
@@ -40,41 +40,39 @@ qRows = map qLine
 qCols :: Field -> Task
 qCols = map qLine . transpose
 
--- | Считаем кол-во заполненных ячеек для подсказки.
+-- | Формируем подсказку по линии (столбцу или строке).
 qLine :: [Cell] -> [Int]
 qLine = map length . filter (any isD) . group
 
 
--- | Идентификаторы.
--- | Проверка, является ли ячейка D.
+-- | Проверка, закрашена ли ячейка.
 isD :: Cell -> Bool
 isD D = True
 isD _ = False
 
--- | Проверка, является ли ячейка U.
+-- | Проверка, помечена ли ячейка крестиком.
 isU :: Cell -> Bool
 isU U = True
 isU _ = False
 
--- | Проверка, является ли ячейка E.
+-- | Проверка, пуста ли ячейка.
 isE :: Cell -> Bool
 isE E = True
 isE _ = False
 
 
--- | Модификаторы.
--- | Если значение отлично от D, то записать в ячейку D, иначе - очистить клетку (Е).
+-- | Если ячейка закрашена, очистить её, иначе - закрасить.
 changeD :: Cell -> Cell
 changeD D = E
 changeD _ = D
 
--- | Если значение отлично от U, то записать в ячейку U, иначе - очистить клетку (Е).
+-- | Если ячейка помечена кретиком, очистить её, иначе - пометить.
 changeU :: Cell -> Cell
 changeU U = E
 changeU _ = U
 
 
--- | Изменить значение в (i, j)-ячейке.  
+-- | Изменить значение в ячейке с координатами (i, j).  
 updateCell :: Coord -> (Cell -> Cell) -> Field -> Field
 updateCell (i, j) f board = updateElem i (updateElem j f) board
 
@@ -84,21 +82,17 @@ updateElem n f xs = ys ++ [f z] ++ zs
   where
     (ys, z:zs) = splitAt n xs
 
--- | Считывание поля из файла.
--- | Разбиваем строку (текст файла) на отдельные строки,
--- | первый map к списку строк,
--- | второй map к элементам строк, тем самым
--- | определяем тип каждой ячейки.
+-- | Считывание и формирование поля по картинке из файла.
 readField :: String -> Field
 readField = map (map readCell) . lines
 
--- | Сопоставление символу тип клетки.
+-- | Сопоставление символу типа клетки.
 readCell :: Char -> Cell
 readCell '.'  = U
 readCell 'O'  = D
 readCell _    = error "Invalid nonogram file"
 
--- | Вызывается из main.
+
 -- | Загрузить головоломку из файла.
 importNonogram :: FilePath -> IO Nonogram
 importNonogram path = do
@@ -106,20 +100,15 @@ importNonogram path = do
   return (makeNonogram (readField contents))
 
 
--- | Размеры окна.
+-- | Ширина окна.
 windowWidth :: Int
 windowWidth = 500
 
+-- | Высота окна.
 windowHeight :: Int
 windowHeight = 500
 
+-- | Размер ячеек.
 cellSize :: Int
 cellSize = 20
 
-{-map2 :: (a -> b -> c) -> [a] -> [b] -> [c]
-map _ [] _ = []
-map _ _ [] = []
-map2 f a b = (f x y) : (map2 f xs ys)
-  where
-    (x:xs) = a
-    (y:ys) = b-}
