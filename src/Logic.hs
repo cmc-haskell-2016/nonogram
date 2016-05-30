@@ -8,7 +8,7 @@ data Cell
   | D   -- ^ ...
   | U
   | Conflict
-  deriving (Eq)
+  deriving (Eq, Show)
 
 type Field = [[Cell]]
 

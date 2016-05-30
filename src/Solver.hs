@@ -141,19 +141,21 @@ guessBlocks row task
     = (takeWhile isD row) ++ (guessBlocks (dropWhile isD row) (tail task))
   | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] 
     = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
---  | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] 
+--  | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] ошибка
 --    = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
-  | (head task) <= space 
-    = p ++ (guessBlocks q (tail task))
-  | otherwise
+--  | (head task) <= space -- если очередное задание невозможно отрисовать
+--    = p ++ (guessBlocks q (tail task))
+  | head task > space
     = a ++ b ++ [ c ] ++ (guessBlocks d (tail task))
+  | otherwise 
+    = row
   where
     lenRow  = length row
     lenTask = sum task + length task - 1
     space   = lenRow - lenTask
     (a, x)  = splitAt space row
     (z, y)  = splitAt ((head task) - space) x
-    b       = take (length z) (repeat D)
+    b       = replicate (head task - space) D
     (c:d)   = y
     (p, q)  = splitAt (head task) row
     groupRow = group row
@@ -247,7 +249,7 @@ lookForRowAccordance [] b = b
 lookForRowAccordance a b  = (lookFor1Accordance (maximum (head a)) (group (head b))) : (lookForRowAccordance (tail a) (tail b))
 
 lookFor1Accordance :: Int -> [[Cell]] -> [Cell]
-lookFor1Accordance m a = foldr (++) [] (putSomeCrosses (findIndices (\x -> and [(length x) == m, any isD x]) a) a)
+lookFor1Accordance m a = concat (putSomeCrosses (findIndices (\x -> and [(length x) == m, any isD x]) a) a)
 
 putSomeCrosses :: [Int] -> [[Cell]] -> [[Cell]]
 putSomeCrosses [] a     = a
@@ -333,8 +335,8 @@ putCrossesNonogram Nonogram { solve = board
                             , field = pic
                             , cols  = top
                             , rows  = left
-              , assumptions = a
-              , frames = f
+                            , assumptions = a
+                            , frames = f
                             } = Nonogram { solve = orField 
                             (putCrossesField left board) 
                                                            (transpose (putCrossesField top (transpose board)))
@@ -356,8 +358,7 @@ putCrossesRow :: [Int] -> [Cell] -> [Cell]
 putCrossesRow _ [] = []
 putCrossesRow [] b = b
 putCrossesRow a b
-  |
-  or [(length groupB) <= 2, (length a) /= 1]
+  | or [(length groupB) <= 2, (length a) > 1]
     = b
   | (head b) == D
     = (takeWhile isD b) ++ (putCrossesRow (tail a) (dropWhile isD b))
