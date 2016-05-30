@@ -8,12 +8,14 @@ import Graphics.Gloss.Interface.Pure.Game
 maxLen :: Task -> Int
 maxLen = maximum . map length
 
+-- | Генератор рисунка из nonogram.
 drawNonogram :: Nonogram -> Picture
 drawNonogram Nonogram { solve = board
                       , cols  = top
                       , rows  = left
                       } 
-  = pictures [ drawGrid startPoint cellSize cellSize (makeTopGrid top)
+  -- | Рисуем подсказки и поле, совмещая 3 картинки.
+  = pictures [ drawGrid startPoint cellSize cellSize (makeTopGrid top) 
              , drawGrid startPoint cellSize cellSize (makeBotGrid left)
              , drawBoardGrid startPoint cellSize cellSize (makeGrid board)
              ]
@@ -24,17 +26,21 @@ drawNonogram Nonogram { solve = board
                  , (div windowHeight 2) - lenTop
                  )
 
+-- | Вычисляем координаты ячеек в IV четверти для дальнейшего translate во точку startPoint.
 makeGrid :: Field -> [(Cell, Coord)]
-makeGrid board = zip (foldr (++) [] (transpose board)) [(x, y) | x <- [0 .. length (head board) - 1]
-                                                   , y <- reverse [negate (length board) .. -1]
-                                                   ]
-
+makeGrid board = zip (foldr (++) [] (transpose board)) [
+                                                      (x, y) | 
+                                                      x <- [0 .. length (head board) - 1]
+                                                      ,
+                                                      y <- reverse [negate (length board) .. -1]
+                                                      ]
+-- | Нарисовать поле.
 drawBoardGrid :: Coord -> Int -> Int -> [(Cell, Coord)] -> Picture
 drawBoardGrid (i, j) width height = translate (fromIntegral i) (fromIntegral j) 
                                   . scale (fromIntegral width) (fromIntegral height) 
                                   . pictures 
                                   . map drawBoardCell
-
+-- | Нарисовать ячейки поля.
 drawBoardCell :: (Cell, Coord) -> Picture
 drawBoardCell (n, (i, j))
   | (n == E)  = pictures [ translate x y 
@@ -71,28 +77,39 @@ makeBotGrid side = zip (foldr (++) [] side) (makeBotAccordance numXY)
 makeBotAccordance :: [([Int], Int)] -> [Coord]
 makeBotAccordance = foldr (++) [] . map (\x -> zip (fst x) (repeat (snd x)))
 
+
+-- | Принимаем список из подсказок и возвращаем координаты ячеек.
+-- | Склеиваем все подсписки и для каждого определяем его высоту.
+-- | [[]] -> Номер подсказки и её координта.
 makeTopGrid :: Task -> [(Int, Coord)]
 makeTopGrid side = zip (foldr (++) [] side) (makeTopAccordance numXY)
   where
     numY  = [[0 .. (x - 1)] | x <- map length side]
-    numXY = zip [0 .. ((length numY) - 1)] numY
+    numXY = zip [0 .. ((length numY) - 1)] numY    
 
+
+-- | [ (X, [0..Y]) ] .
+-- | Список координат ячеек верхней подсказки.
 makeTopAccordance :: [(Int, [Int])] -> [Coord]
 makeTopAccordance = foldr (++) [] . map (\x -> zip (repeat (fst x)) (reverse (snd x)))
 
+
+-- | Рисует подсказки-ячейки (слева и сверху).
 drawGrid :: Coord -> Int -> Int -> [(Int, Coord)] -> Picture
 drawGrid (i, j) width height = translate (fromIntegral i) (fromIntegral j) 
                              . scale (fromIntegral width) (fromIntegral height) 
                              . pictures 
                              . map drawCell
 
-
+-- | Рисует ячейку подсказки по заданным координатам и значению.
 drawCell :: (Int, Coord) -> Picture
 drawCell (n, (i, j))
-  | (n == 0)  = pictures [ translate x y 
+  | (n == 0)  = pictures [
+                          translate x y 
                          $ color white 
                          $ rectangleSolid size size
-                         , translate x y 
+                         , 
+                         translate x y 
                          $ color black 
                          $ rectangleWire size size
                          ]
@@ -111,9 +128,10 @@ drawCell (n, (i, j))
     size = 1;
     x = fromIntegral i;
     y = fromIntegral j
+----------------------------------------------------------------
 
 
-
+-- | Реакция на мышь и клавиатуру.
 handleNonogram :: Event -> Nonogram -> Nonogram
 handleNonogram (EventKey (MouseButton button) Down _ (x, y)) 
                start@Nonogram { solve = board 
