@@ -120,6 +120,8 @@ handleNonogram (EventKey (MouseButton button) Down _ (x, y))
                               , field = pic
                               , cols  = upSide
                               , rows  = leftSide
+                              , assumptions = a
+                              , frames = f
                               } 
   | and [ x > (fromIntegral left)
         , x < (fromIntegral right)
@@ -127,14 +129,25 @@ handleNonogram (EventKey (MouseButton button) Down _ (x, y))
         , y < (fromIntegral top)
         , button == LeftButton
         ]
-    = Nonogram { solve = updateCell (i, j) changeD board, field = pic, cols = upSide, rows = leftSide } 
+    = Nonogram { solve = updateCell (i, j) changeD board
+               , field = pic
+               , cols = upSide
+               , rows = leftSide 
+               , assumptions = a
+               , frames = f} 
   | and [ x > (fromIntegral left)
         , x < (fromIntegral right)
         , y > (fromIntegral bot)
         , y < (fromIntegral top)
         , button == RightButton
         ]
-    = Nonogram { solve = updateCell (i, j) changeU board, field = pic, cols = upSide, rows = leftSide }
+    = Nonogram { solve = updateCell (i, j) changeU board
+               , field = pic
+               , cols = upSide
+               , rows = leftSide 
+               , assumptions = a
+               , frames = f
+               }
   | otherwise
     = start
   where
@@ -145,62 +158,39 @@ handleNonogram (EventKey (MouseButton button) Down _ (x, y))
     i = floor (((fromIntegral top) - y) / (fromIntegral cellSize))
     j = floor ((x - (fromIntegral left)) / (fromIntegral cellSize))
 handleNonogram (EventKey (Char key) Down _ _)
-               Nonogram { solve = board 
-                        , field = pic
-                        , cols  = upSide
-                        , rows  = leftSide
-                        }
+               start@Nonogram { solve       = board 
+                              , field       = pic
+                              , cols        = upSide
+                              , rows        = leftSide
+                              , assumptions = a
+                              , frames      = f
+                              }
   | key == 'g' 
-    = guessNonogram Nonogram { solve = board
-                             , field = pic
-                             , cols  = upSide
-                             , rows  = leftSide
-                             }
+    = guessNonogram start
   | key == 'c' 
-    = crossesNonogram Nonogram { solve = board
-                               , field = pic
-                               , cols  = upSide
-                               , rows  = leftSide
-                               }
-
+    = crossesNonogram start
   | key == 's' 
-    = sidesNonogram Nonogram { solve = board
-                             , field = pic
-                             , cols  = upSide
-                             , rows  = leftSide
-                             }
+    = sidesNonogram start
   | key == 'a' 
-    = lookForAccordance Nonogram { solve = board
-                                 , field = pic
-                                 , cols  = upSide
-                                 , rows  = leftSide
-                                 }
+    = lookForAccordance start
   | key == 'f' 
-    = fillNonogram Nonogram { solve = board
-                            , field = pic
-                            , cols  = upSide
-                            , rows  = leftSide
-                            }
+    = fillNonogram start
   | key == 'p' 
-    = crossesNonogram Nonogram { solve = board
-                                  , field = pic
-                                  , cols  = upSide
-                                  , rows  = leftSide
-                                  }
+    = putCrossesNonogram start 
+  | key == 'k' 
+    = isOk start
   | key == 'o' 
-    = autoSolve Nonogram { solve = board
-                         , field = pic
-                         , cols  = upSide
-                         , rows  = leftSide
-                         }
+    = autoSolve start 
   | key == 'e' 
     = Nonogram { solve = emptySolve pic
                , field  = pic
                , cols = upSide
                , rows = leftSide
+               , assumptions = a
+               , frames = f
                }
   | otherwise
-    = Nonogram { solve = board, field  = pic, cols = upSide, rows = leftSide}
+    = start 
 handleNonogram _ a = a
 
 updateNonogram :: Float -> Nonogram -> Nonogram

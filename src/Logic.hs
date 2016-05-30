@@ -8,7 +8,6 @@ data Cell
   | D   -- ^ ...
   | U
   | Conflict
-  | TD
   deriving (Eq)
 
 type Field = [[Cell]]
@@ -16,16 +15,18 @@ type Field = [[Cell]]
 type Task = [[Int]]
 
 data Nonogram = Nonogram
-  { solve :: Field
-  , field :: Field      -- ^ ...
-  , cols  :: Task
-  , rows  :: Task
+  { solve       :: Field
+  , field       :: Field      -- ^ ...
+  , cols        :: Task
+  , rows        :: Task
+  , assumptions :: [Coord]
+  , frames      :: [Field]
   }
 
 type Coord = (Int, Int)
 
 makeNonogram :: Field -> Nonogram
-makeNonogram pic = Nonogram (emptySolve pic) pic (qCols pic) (qRows pic)
+makeNonogram pic = Nonogram (emptySolve pic) pic (qCols pic) (qRows pic) [] []
 
 emptySolve :: Field -> Field
 emptySolve pic = take (length pic) (repeat (take (length (head pic)) (repeat E)))
