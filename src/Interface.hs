@@ -1,16 +1,12 @@
 module Interface where
 
 import Logic
+import Solver
 import Data.List
 import Graphics.Gloss.Interface.Pure.Game
 
-windowWidth = 500 :: Int
-windowHeight = 500 :: Int
-cellSize = 20 :: Int
-
 maxLen :: Task -> Int
 maxLen = maximum . map length
-
 
 drawNonogram :: Nonogram -> Picture
 drawNonogram Nonogram { solve = board
@@ -27,9 +23,6 @@ drawNonogram Nonogram { solve = board
     startPoint = ( (div ((-1) * windowWidth) 2) + lenLeft
                  , (div windowHeight 2) - lenTop
                  )
-    emptyGrid = zip (repeat 0) [(x, y) | y <- [(negate (length left)) .. -1]
-                                       , x <- [0 .. ((length top) - 1)]
-                                       ]
 
 makeGrid :: Field -> [(Cell, Coord)]
 makeGrid board = zip (foldr (++) [] (transpose board)) [(x, y) | x <- [0 .. length (head board) - 1]
@@ -123,11 +116,11 @@ drawCell (n, (i, j))
 
 handleNonogram :: Event -> Nonogram -> Nonogram
 handleNonogram (EventKey (MouseButton button) Down _ (x, y)) 
-               Nonogram { solve = board 
-                        , field = pic
-                        , cols  = upSide
-                        , rows  = leftSide
-                        } 
+               start@Nonogram { solve = board 
+                              , field = pic
+                              , cols  = upSide
+                              , rows  = leftSide
+                              } 
   | and [ x > (fromIntegral left)
         , x < (fromIntegral right)
         , y > (fromIntegral bot)
@@ -143,7 +136,7 @@ handleNonogram (EventKey (MouseButton button) Down _ (x, y))
         ]
     = Nonogram { solve = updateCell (i, j) changeU board, field = pic, cols = upSide, rows = leftSide }
   | otherwise
-    = Nonogram { solve = board, field  = pic, cols = upSide, rows = leftSide}
+    = start
   where
     left = (div (negate windowWidth) 2) + cellSize * (maxLen leftSide)
     top = (div windowHeight 2) - cellSize * (maxLen upSide)
@@ -151,25 +144,64 @@ handleNonogram (EventKey (MouseButton button) Down _ (x, y))
     bot = top - cellSize * (length leftSide)
     i = floor (((fromIntegral top) - y) / (fromIntegral cellSize))
     j = floor ((x - (fromIntegral left)) / (fromIntegral cellSize))
+handleNonogram (EventKey (Char key) Down _ _)
+               Nonogram { solve = board 
+                        , field = pic
+                        , cols  = upSide
+                        , rows  = leftSide
+                        }
+  | key == 'g' 
+    = guessNonogram Nonogram { solve = board
+                             , field = pic
+                             , cols  = upSide
+                             , rows  = leftSide
+                             }
+  | key == 'c' 
+    = crossesNonogram Nonogram { solve = board
+                               , field = pic
+                               , cols  = upSide
+                               , rows  = leftSide
+                               }
+
+  | key == 's' 
+    = sidesNonogram Nonogram { solve = board
+                             , field = pic
+                             , cols  = upSide
+                             , rows  = leftSide
+                             }
+  | key == 'a' 
+    = lookForAccordance Nonogram { solve = board
+                                 , field = pic
+                                 , cols  = upSide
+                                 , rows  = leftSide
+                                 }
+  | key == 'f' 
+    = fillNonogram Nonogram { solve = board
+                            , field = pic
+                            , cols  = upSide
+                            , rows  = leftSide
+                            }
+  | key == 'p' 
+    = crossesNonogram Nonogram { solve = board
+                                  , field = pic
+                                  , cols  = upSide
+                                  , rows  = leftSide
+                                  }
+  | key == 'o' 
+    = autoSolve Nonogram { solve = board
+                         , field = pic
+                         , cols  = upSide
+                         , rows  = leftSide
+                         }
+  | key == 'e' 
+    = Nonogram { solve = emptySolve pic
+               , field  = pic
+               , cols = upSide
+               , rows = leftSide
+               }
+  | otherwise
+    = Nonogram { solve = board, field  = pic, cols = upSide, rows = leftSide}
 handleNonogram _ a = a
-
-
-changeD :: Cell -> Cell
-changeD D = E
-changeD _ = D
-
-changeU :: Cell -> Cell
-changeU U = E
-changeU _ = U
-
-updateCell :: Coord -> (Cell -> Cell) -> Field -> Field
-updateCell (i, j) f board = updateElem i (updateElem j f) board
-
-updateElem :: Int -> (a -> a) -> [a] -> [a]
-updateElem n f xs = ys ++ [f z] ++ zs
-  where
-    (ys, z:zs) = splitAt n xs
-
 
 updateNonogram :: Float -> Nonogram -> Nonogram
 updateNonogram _ f = f
