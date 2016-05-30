@@ -7,6 +7,8 @@ data Cell
   = E   -- ^ Пустая ячейка.
   | D   -- ^ ...
   | U
+  | Conflict
+  | TD
   deriving (Eq)
 
 type Field = [[Cell]]
@@ -41,6 +43,30 @@ isD :: Cell -> Bool
 isD D = True
 isD _ = False
 
+isU :: Cell -> Bool
+isU U = True
+isU _ = False
+
+isE :: Cell -> Bool
+isE E = True
+isE _ = False
+
+changeD :: Cell -> Cell
+changeD D = E
+changeD _ = D
+
+changeU :: Cell -> Cell
+changeU U = E
+changeU _ = U
+
+updateCell :: Coord -> (Cell -> Cell) -> Field -> Field
+updateCell (i, j) f board = updateElem i (updateElem j f) board
+
+updateElem :: Int -> (a -> a) -> [a] -> [a]
+updateElem n f xs = ys ++ [f z] ++ zs
+  where
+    (ys, z:zs) = splitAt n xs
+
 readField :: String -> Field
 readField = map (map readCell) . lines
 
@@ -55,3 +81,19 @@ importNonogram path = do
   contents <- readFile path
   return (makeNonogram (readField contents))
 
+windowWidth :: Int
+windowWidth = 500
+
+windowHeight :: Int
+windowHeight = 500
+
+cellSize :: Int
+cellSize = 20
+
+{-map2 :: (a -> b -> c) -> [a] -> [b] -> [c]
+map _ [] _ = []
+map _ _ [] = []
+map2 f a b = (f x y) : (map2 f xs ys)
+  where
+    (x:xs) = a
+    (y:ys) = b-}
