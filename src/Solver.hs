@@ -143,7 +143,7 @@ guessBlocks row task
     = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
 --  | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] 
 --    = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
-  | (head task) < space 
+  | (head task) <= space 
     = p ++ (guessBlocks q (tail task))
   | otherwise
     = a ++ b ++ [ c ] ++ (guessBlocks d (tail task))
