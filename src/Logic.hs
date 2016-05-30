@@ -83,10 +83,10 @@ importNonogram path = do
   return (makeNonogram (readField contents))
 
 windowWidth :: Int
-windowWidth = 500
+windowWidth = 1300
 
 windowHeight :: Int
-windowHeight = 500
+windowHeight = 700
 
 cellSize :: Int
 cellSize = 20

@@ -8,20 +8,22 @@ import Graphics.Gloss.Interface.Pure.Game
 maxLen :: Task -> Int
 maxLen = maximum . map length
 
+
 drawNonogram :: Nonogram -> Picture
 drawNonogram Nonogram { solve = board
                       , cols  = top
                       , rows  = left
                       } 
-  = pictures [ drawGrid startPoint cellSize cellSize (makeTopGrid top)
-             , drawGrid startPoint cellSize cellSize (makeBotGrid left)
-             , drawBoardGrid startPoint cellSize cellSize (makeGrid board)
+  = pictures [ drawGrid startPoint scaleSize scaleSize (makeTopGrid top)
+             , drawGrid startPoint scaleSize scaleSize (makeBotGrid left)
+             , drawBoardGrid startPoint scaleSize scaleSize (makeGrid board)
              ]
   where
+    scaleSize = (fromIntegral cellSize) * 20 / (fromIntegral (max (length board) (length (head board))))
     lenLeft = cellSize * (maxLen left) + (div cellSize 2)
     lenTop = cellSize * (maxLen top) - (div cellSize 2)
-    startPoint = ( (div ((-1) * windowWidth) 2) + lenLeft
-                 , (div windowHeight 2) - lenTop
+    startPoint = ( -500
+                 , 200
                  )
 
 makeGrid :: Field -> [(Cell, Coord)]
@@ -29,9 +31,9 @@ makeGrid board = zip (foldr (++) [] (transpose board)) [(x, y) | x <- [0 .. leng
                                                    , y <- reverse [negate (length board) .. -1]
                                                    ]
 
-drawBoardGrid :: Coord -> Int -> Int -> [(Cell, Coord)] -> Picture
+drawBoardGrid :: Coord -> Float -> Float -> [(Cell, Coord)] -> Picture
 drawBoardGrid (i, j) width height = translate (fromIntegral i) (fromIntegral j) 
-                                  . scale (fromIntegral width) (fromIntegral height) 
+                                  . scale width height 
                                   . pictures 
                                   . map drawBoardCell
 
@@ -80,9 +82,9 @@ makeTopGrid side = zip (foldr (++) [] side) (makeTopAccordance numXY)
 makeTopAccordance :: [(Int, [Int])] -> [Coord]
 makeTopAccordance = foldr (++) [] . map (\x -> zip (repeat (fst x)) (reverse (snd x)))
 
-drawGrid :: Coord -> Int -> Int -> [(Int, Coord)] -> Picture
+drawGrid :: Coord -> Float -> Float -> [(Int, Coord)] -> Picture
 drawGrid (i, j) width height = translate (fromIntegral i) (fromIntegral j) 
-                             . scale (fromIntegral width) (fromIntegral height) 
+                             . scale width height
                              . pictures 
                              . map drawCell
 
@@ -173,14 +175,14 @@ handleNonogram (EventKey (Char key) Down _ _)
     = sidesNonogram start
   | key == 'a' 
     = lookForAccordance start
-  | key == 'f' 
-    = fillNonogram start
   | key == 'p' 
     = putCrossesNonogram start 
   | key == 'k' 
     = isOk start
   | key == 'o' 
-    = autoSolve start 
+    = 
+     autoSolve start
+    --autoSolve start --iterate autoSolve start !! 200
   | key == 'e' 
     = Nonogram { solve = emptySolve pic
                , field  = pic

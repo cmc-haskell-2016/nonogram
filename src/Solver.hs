@@ -8,7 +8,7 @@ import Data.Char
 
 
 isConflict :: Nonogram -> Bool
-isConflict Nonogram {solve = board} = or (map isConflict1 board)
+isConflict Nonogram {solve = board} = any (any (== Conflict)) board
 
 isConflict1 :: [Cell] -> Bool
 isConflict1 a = or (map (== Conflict) a)
@@ -29,7 +29,7 @@ autoSolve start@Nonogram { solve = board
                          , frames = f
                          }
   | isConflict start
-    = --autoSolve
+    = autoSolve
       Nonogram { solve = updateCell (head a) (\x -> U) (head f)
                , field = pic
                , cols = top
@@ -40,7 +40,7 @@ autoSolve start@Nonogram { solve = board
   | pic == board
     = start
   | board == newBoard
-     = --(autoSolve 
+     =  autoSolve 
      Nonogram { solve = updateCell (firstECell board) (\x -> D) board
                                           , field = pic
                                           , cols = top
@@ -49,7 +49,7 @@ autoSolve start@Nonogram { solve = board
                                           , frames = (board:f)
                                           }
   | otherwise
-    = --autoSolve 
+    = autoSolve 
     finish
     where
       finish@Nonogram { solve = newBoard
@@ -58,11 +58,12 @@ autoSolve start@Nonogram { solve = board
                       , rows = left
                       } = isOk
                         $ guessNonogram 
-                        $ fillNonogram
+--                        $ fillNonogram
                         $ sidesNonogram 
                         $ crossesNonogram 
                         $ lookForAccordance
-                        $ putCrossesNonogram start 
+                        $ putCrossesNonogram 
+                        start 
 
 
 --firstE = firstECell board
@@ -99,11 +100,16 @@ isOk Nonogram { solve = board
                            }
 
 isOkField :: Field -> Task -> Field
-isOkField _ [] = []
-isOkField (x:xs) (y:ys) = (isOkRow x y) : (isOkField xs ys)
+isOkField = zipWith isOkRow
 
 isOkRow :: [Cell] -> [Int] -> [Cell]
 isOkRow row task
+  | length (group row) == 1
+    = row
+  | and [not (elem E row), not (task == map length (filter (any isD) (group row)))]
+    = replicate (length row) Conflict
+  | and [length (map length (filter (any isD) (group (takeWhile (/= E) row)))) > length task]
+    = replicate (length row) Conflict
   | or [(maximum task) < (maximum (0:(map length (filter (any isD) (group row)))))]
     = replicate (length row) Conflict
   | otherwise
@@ -139,8 +145,8 @@ guessBlocks row task
     = (takeWhile isU row) ++ (guessBlocks (dropWhile isU row) task)
   | and [any isD (head groupRow), (length groupRow) > 1, any isU (head (tail groupRow))] 
     = (takeWhile isD row) ++ (guessBlocks (dropWhile isD row) (tail task))
-  | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] 
-    = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
+ -- | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] 
+ --   = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
 --  | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] ошибка
 --    = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
 --  | (head task) <= space -- если очередное задание невозможно отрисовать
@@ -213,7 +219,7 @@ guessSides a b  = (guessLeftSide x (reverse (guessLeftSide (reverse x) (reverse 
 
 guessLeftSide :: [Int] -> [Cell] -> [Cell]
 guessLeftSide a b 
-  | or [(length q) == 0, (length p) == 0, (last p) /= D, indexOfCount > (length a)]
+  | or [(length q) == 0, (length p) == 0, (last p) /= D, indexOfCount >= (length a)]
     = b
   | (length y) == 0
     = p ++ x
@@ -246,6 +252,7 @@ lookForAccordance Nonogram { solve = board
 
 lookForRowAccordance :: Task -> Field -> Field
 lookForRowAccordance [] b = b
+lookForRowAccordance ([]:a) b = (head b) : (lookForRowAccordance a (tail b))
 lookForRowAccordance a b  = (lookFor1Accordance (maximum (head a)) (group (head b))) : (lookForRowAccordance (tail a) (tail b))
 
 lookFor1Accordance :: Int -> [[Cell]] -> [Cell]
@@ -270,65 +277,6 @@ put1Crosses x a
     p = init a
     (l, m:n:ns) = splitAt x a
 
-
-fillNonogram :: Nonogram -> Nonogram
-fillNonogram Nonogram { solve = board
-                      , field = pic
-                      , cols  = top
-                      , rows  = left
-              , assumptions = a
-              , frames = f
-                      } = Nonogram { solve = orField (fillField left board) 
-                                                     (transpose (fillField top (transpose board)))
-                                   , field = pic
-                                   , cols = top
-                                   , rows = left
-              , assumptions = a
-              , frames = f
-                                   }
-
-fillField :: Task -> Field -> Field
-fillField [] b = b
-fillField a b  = (fillRow x y) : (fillField xs ys)
-  where
-    (x:xs) = a
-    (y:ys) = b
-
-fillRow :: [Int] -> [Cell] -> [Cell]
-fillRow a b
-  | (length a) == (length (filter (any isD) groupRow))
-    = foldr (++) [] (fillBlocks a (findIndices (any isD) groupRow) groupRow)
-  | otherwise
-    = b
-  where
-    groupRow = group b
-  
-fillBlocks :: [Int] -> [Int] -> [[Cell]] -> [[Cell]]
-fillBlocks [] _ a     = a
-fillBlocks _ [] a     = a
-fillBlocks (x:xs) (y:ys) a = fillBlocks xs ys (fill1Block x y a)
-
-fill1Block :: Int -> Int -> [[Cell]] -> [[Cell]]
-fill1Block n x a
-  | or [x == 0, x == ((length a) - 1)]
-    = a
-  | and [i, any isU (a !! (x - 1))]
-    = (take (x + 1) a) ++ (fillBlock (n - lenBlock) (drop (x + 1) a))
-  | and [i, any isU (a !! (x + 1))]
-    = (reverse (map reverse (fillBlock (n - lenBlock) (reverse (take x a))))) ++ (drop x a)
-  | otherwise
-    = a
-  where
-    i = n /= lenBlock
-    lenBlock = length (a !! x)
-
-fillBlock :: Int -> [[Cell]] -> [[Cell]]
-fillBlock 0 a = a
-fillBlock _ [] = []
-fillBlock x (y:ys) = ((replicate m D) ++ (drop m y)) : (fillBlock (x - m) ys)
-  where
-    m = min x lenGroup
-    lenGroup = length y
 
 putCrossesNonogram :: Nonogram -> Nonogram
 putCrossesNonogram Nonogram { solve = board
@@ -366,9 +314,9 @@ putCrossesRow a b
     = (takeWhile isU b) ++ (putCrossesRow a (dropWhile isU b))
   | and [any isE x, any isD y, any isE z]
     =  (replicate xU U) 
-    ++ (replicate numE E) 
+    ++ (replicate numE1 E) 
     ++ y 
-    ++ (replicate numE E) 
+    ++ (replicate numE2 E) 
     ++ (replicate zU U)
     ++ (putCrossesRow (tail a) (foldr (++) [] zs))
   | otherwise
@@ -376,9 +324,10 @@ putCrossesRow a b
   where
     groupB      = group b
     (x:y:z:zs) = groupB
-    numE = min ((head a) - (length y)) (length x)
-    xU = (length x) - numE
-    zU = (length z) - numE
+    numE1 = min ((head a) - (length y)) (length x)
+    numE2 = min ((head a) - (length y)) (length z)
+    xU = (length x) - numE1
+    zU = (length z) - numE2
 
 
 orField :: Field -> Field -> Field
