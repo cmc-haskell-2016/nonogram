@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Solver where
 
 import Logic
@@ -112,15 +114,15 @@ guessNonogram Nonogram { solve = board
                        , field = pic
                        , cols  = top
                        , rows  = left
-              , assumptions = a
-              , frames = f
-                       } = Nonogram { solve = orField board
-                                                      (orField (guessRow board left) (transpose (guessRow (transpose board) top)))
+                       , assumptions = a
+                       , frames = f
+                       } = Nonogram { solve = orField (guessRow board left) 
+                                                      (transpose (guessRow (transpose board) top))
                                     , field = pic
                                     , cols = top
                                     , rows = left
-              , assumptions = a
-              , frames = f
+                                    , assumptions = a
+                                    , frames = f
                                     }
 
 guessRow :: Field -> Task -> Field
@@ -375,17 +377,17 @@ putCrossesRow a b
 
 
 orField :: Field -> Field -> Field
-orField a b = map orRow (zip a b)
+orField = zipWith orRow
 
-orRow :: ([Cell], [Cell]) -> [Cell]
-orRow (a, b) = map orCell (zip a b)
+orRow :: [Cell] -> [Cell] -> [Cell]
+orRow = zipWith orCell
 
-orCell :: (Cell, Cell) -> Cell
-orCell (_, Conflict) = Conflict
-orCell (Conflict, _) = Conflict
-orCell (E, a) = a
-orCell (a, E) = a
-orCell (a, b) 
+orCell :: Cell -> Cell -> Cell
+orCell _ Conflict = Conflict
+orCell Conflict _ = Conflict
+orCell E a = a
+orCell a E = a
+orCell a b 
   | a == b
     = a
   | otherwise
