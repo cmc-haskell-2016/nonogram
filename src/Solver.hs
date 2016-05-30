@@ -116,8 +116,8 @@ guessNonogram Nonogram { solve = board
                        , rows  = left
                        , assumptions = a
                        , frames = f
-                       } = Nonogram { solve = orField (guessRow board left) 
-                                                      (transpose (guessRow (transpose board) top))
+                       } = Nonogram { solve = orField (guessRows board left) 
+                                                      (guessCols board top )
                                     , field = pic
                                     , cols = top
                                     , rows = left
@@ -125,9 +125,11 @@ guessNonogram Nonogram { solve = board
                                     , frames = f
                                     }
 
-guessRow :: Field -> Task -> Field
-guessRow board []   = board
-guessRow board task = (guessBlocks (head board) (head task)) : (guessRow (tail board) (tail task))
+guessCols :: Field -> Task -> Field
+guessCols a b = transpose (guessRows (transpose a) b)
+
+guessRows :: Field -> Task -> Field
+guessRows  = zipWith guessBlocks 
 
 guessBlocks :: [Cell] -> [Int] -> [Cell]
 guessBlocks [] _     = []
@@ -139,13 +141,15 @@ guessBlocks row task
     = (takeWhile isD row) ++ (guessBlocks (dropWhile isD row) (tail task))
   | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] 
     = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
+--  | and [any isE (head groupRow), (length (head groupRow)) < (head task), any isU (head (tail groupRow))] 
+--    = (replicate (length (head groupRow)) U) ++ (guessBlocks (dropWhile isE row) task)
   | (head task) < space 
     = p ++ (guessBlocks q (tail task))
   | otherwise
     = a ++ b ++ [ c ] ++ (guessBlocks d (tail task))
   where
     lenRow  = length row
-    lenTask = (foldr (+) 0 task) + (length task) - 1
+    lenTask = sum task + length task - 1
     space   = lenRow - lenTask
     (a, x)  = splitAt space row
     (z, y)  = splitAt ((head task) - space) x
