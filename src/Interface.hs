@@ -10,7 +10,7 @@ maxLen = maximum . map length
 
 -- | Генератор рисунка из nonogram.
 drawNonogram :: Nonogram -> Picture
-drawNonogram Nonogram { solve = board
+drawNonogram nonogram@Nonogram { solve = board
                       , cols  = top
                       , rows  = left
                       } 
@@ -18,6 +18,7 @@ drawNonogram Nonogram { solve = board
   = pictures [ drawGrid startPoint cellSize cellSize (makeTopGrid top) 
              , drawGrid startPoint cellSize cellSize (makeBotGrid left)
              , drawBoardGrid startPoint cellSize cellSize (makeGrid board)
+             , drawThickLines nonogram startPoint cellSize cellSize
              ]
   where
     lenLeft = cellSize * (maxLen left) + (div cellSize 2)
@@ -25,6 +26,60 @@ drawNonogram Nonogram { solve = board
     startPoint = ( (div ((-1) * windowWidth) 2) + lenLeft
                  , (div windowHeight 2) - lenTop
                  )
+
+drawThickLines :: Nonogram -> Coord -> Int -> Int -> Picture
+drawThickLines Nonogram {solve = board
+                      , cols  = top
+                      , rows  = left} 
+                      (i, j) width height 
+  = translate (fromIntegral i) (fromIntegral j) 
+    (scale (fromIntegral width) (fromIntegral height) 
+    (translate (-0.5) (-0.5)
+    (pictures (vertical ++ horizontal))))
+  where
+    vertical = take (colBlockNum board) (drawVertLines (colBounds top board))
+    horizontal = take (rowBlockNum board) (drawHorLines (rowBounds left board))
+                                                
+
+--colBounds :: Task -> Field -> (Int, Int)
+--colBounds top  = rowBounds top . transpose
+
+--rowBounds :: Task -> Field -> (Int, Int)
+--rowBounds left board = (maxLen left, length board)
+
+rowBounds :: Task -> Field -> (Int, Int)
+rowBounds top  = colBounds top . transpose
+
+colBounds :: Task -> Field -> (Int, Int)
+colBounds left board = (maxLen left, length board)
+
+
+colBlockNum :: Field -> Int
+colBlockNum  = rowBlockNum . transpose 
+
+rowBlockNum :: Field -> Int
+rowBlockNum board = (length board - 1) `div` 5 + 1 
+
+drawVertLine :: (Int, Int) -> Picture
+drawVertLine (y1, y2) = translate 0 (fromIntegral y1 - height/2) (rectangleSolid width height)
+  where 
+      width = 0.2
+      height = fromIntegral (y1 + y2)
+
+drawHorLine :: (Int, Int) -> Picture
+drawHorLine (x1, x2) = translate (width/2 - fromIntegral x1) 0 (rectangleSolid width height)
+  where 
+      width = fromIntegral (x2 + x1)
+      height = 0.2
+
+drawVertLines :: (Int, Int) -> [Picture]
+drawVertLines bounds = [ translate x 0 (drawVertLine bounds) | x <- [0, 5 ..]]
+
+drawHorLines :: (Int, Int) -> [Picture]
+drawHorLines bounds = [ translate 0 y (drawHorLine bounds) | y <- [0, -5 ..]]
+
+
+
 
 -- | Вычисляем координаты ячеек в IV четверти для дальнейшего translate во точку startPoint.
 makeGrid :: Field -> [(Cell, Coord)]

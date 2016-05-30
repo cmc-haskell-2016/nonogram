@@ -8,6 +8,7 @@ data Cell
   | D   -- ^ Закрашенная ячейка.
   | U   -- ^ Крестик.
   | Conflict  -- ^ Неверная отметка.
+  | TD
   deriving (Eq) 
 
 type Field = [[Cell]]
